@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<h1>Todos, the harder way</h1>
+<p>An utterly pointless, albeit entertaining, example of programming without the use of var, let, const, with, or any type of reassignment to existing object properties</p>
+<form id="new-todo-form">
+  <h2>Create a new todo</h2>
+  <label for="new-todo">New To-do:</label>
+  <input name="new-todo" placeholder="What would you like to do?" />
+  <br>
+  <button type="submit">Submit</button>
+</form>
+<div>
+  <h2>To-dos</h2>
+  <ul id="todos"></ul>
+</div>
+<div>
+  <h2>To-dones</h2>
+  <ul id="to-dones"></ul>
+</div>
+
+<template id="todo-row-template">
+  <li>
+    <span class="text"></span>
+    <button class="delete">Delete</button>&nbsp;|&nbsp;
+    <button class="complete">Complete</button>
+  </li>
+</template>
+
+<template id="todone-row-template">
+  <li>
+    <s class="text"></s>
+  </li>
+</template>
+
+<script>
+(({
+  $form,
+  $todos,
+  $toDones,
+  $todoRowTemplate,
+  $toDoneRowTemplate,
+
+  doneList,
+  todoList,
+}) => {
+  function pruneChildren($node) {
+    while ($node.firstChild) {
+      $node.removeChild($node.firstChild);
+    }
+  }
+
+  function addTodo(todo) {
+    todoList.push(todo);
+
+    rerender();
+  }
+  
+  function closeTodo(todo, done) {
+    todoList.splice(todoList.indexOf(todo), 1);
+
+    if (done) doneList.push(todo);
+
+    rerender();
+  }
+
+  // todo
+  function rerender() {
+    $form.reset();
+
+    pruneChildren($todos);
+    todoList.forEach(todo => {
+      $todos.appendChild(
+        (($node) => {
+          $node
+            .querySelector('.text')
+            .appendChild(document.createTextNode(todo));
+
+          $node
+            .querySelector('.delete').addEventListener('click', () => closeTodo(todo, false));
+
+          $node
+            .querySelector('.complete').addEventListener('click', () => closeTodo(todo, true));
+
+          return $node;
+        })($todoRowTemplate.content.cloneNode(true))
+      );
+    });
+
+    pruneChildren($toDones);
+    doneList.forEach(done => {
+      $toDones.appendChild(
+        (($node) => {
+          $node
+            .querySelector('.text')
+            .appendChild(document.createTextNode(done));
+
+          return $node;
+        })($toDoneRowTemplate.content.cloneNode(true))
+      );
+    });
+  }
+
+  $form.addEventListener('submit', e => {
+    e.preventDefault();
+    addTodo(
+      (new FormData(e.target)).get('new-todo')
+    )
+  });
+
+  rerender();
+})({
+  $form: document.querySelector('#new-todo-form'),
+  $todos: document.querySelector('#todos'),
+  $toDones: document.querySelector('#to-dones'),
+  $todoRowTemplate: document.querySelector('#todo-row-template'),
+  $toDoneRowTemplate: document.querySelector('#todone-row-template'),
+
+  doneList: ['Steak', 'Ribs', 'Loin', 'Bacon'],
+  todoList: ['Apple', 'Orange', 'Spinach', 'Kale'],
+})
+</script>
